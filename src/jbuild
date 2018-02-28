@@ -1,0 +1,7 @@
+(jbuild_version 1)
+
+(library (
+  (name sourcemaps)
+  (public_name sourcemaps)
+  (libraries (vlq))
+))
