@@ -33,3 +33,14 @@ outlined on that page and do not file a public issue.
 ## License
 By contributing to ocaml-sourcemaps, you agree that your contributions will be
 licensed under the LICENSE file in the root directory of this source tree.
+
+## Release Process
+
+1. Review the changes since last version: `topkg status`
+2. Write the release notes: `topkg log edit`
+3. Commit the release notes: `topkg log commit`
+4. Tag the distribution with a version: `topkg tag`
+5. Create the distribution archive: `topkg distrib`
+6. Upload the archive to GitHub: `topkg publish distrib`
+7. Create an opam package: `topkg opam pkg`
+8. Submit it to OCaml's opam repository: `topkg opam submit`

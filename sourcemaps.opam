@@ -6,14 +6,11 @@ doc: "https://github.com/flowtype/ocaml-sourcemaps"
 license: "MIT"
 dev-repo: "https://github.com/flowtype/ocaml-sourcemaps.git"
 bug-reports: "https://github.com/flowtype/ocaml-sourcemaps/issues"
-tags: []
-available: [ ocaml-version >= "4.01.0"]
 depends:
 [
   "jbuilder" {build & >= "1.0+beta7"}
   "ounit" {test & >= "2.0.0"}
   "vlq"
 ]
-depopts: []
 build: [["jbuilder" "build" "-p" name "-j" jobs]]
 build-test: [["jbuilder" "runtest" "-p" name "-j" jobs]]
