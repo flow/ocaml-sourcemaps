@@ -9,6 +9,7 @@ open OUnit2
 
 let tests = "sourcemaps" >::: [
   Json_test.tests;
+  Original_loc_test.tests;
 ]
 
 let () = run_test_tt_main tests
