@@ -13,7 +13,7 @@ type t = {
   source_root: string option;
   sources: SSet.t;
   names: SSet.t;
-  mappings: mapping list;
+  mappings: mapping list; (* assumed to be sorted. switch to a Map? *)
   sources_contents: string SMap.t;
 }
 and mapping = {
@@ -48,6 +48,26 @@ let create ?file ?source_root () = {
   mappings = [];
   sources_contents = SMap.empty;
 }
+
+(* Searches for `needle` in `arr`. If `needle` doesn't exist, returns the closest lower bound. *)
+let rec binary_search ~cmp needle arr l u =
+  if u < l then arr.(l) else
+  let i = (l + u) / 2 in
+  let k = cmp needle arr.(i) in
+  if k = 0 then arr.(i)
+  else if k < 0 then binary_search ~cmp needle arr l (i - 1)
+  else binary_search ~cmp needle arr (i + 1) u
+
+let find_original map generated =
+  let mappings = Array.of_list map.mappings in
+  let len = Array.length mappings in
+  let cmp = fun { line = a_line; col = a_col } { generated_loc = { line = b_line; col = b_col }; _ } ->
+    let k = b_line - a_line in
+    if k = 0 then b_col - a_col
+    else k
+  in
+  let mapping = binary_search ~cmp generated mappings 0 (len - 1) in
+  mapping.original
 
 let add_mapping ~original ~generated map =
   let sources = SSet.add original.source map.sources in
