@@ -102,19 +102,27 @@ let tests = "json" >::: [
   end;
 
   "json_of_sourcemap" >:: begin fun ctxt ->
-    let original = { Sourcemap.line = 1; col = 1 } in
-    let generated = { Sourcemap.line = 3; col = 1 } in
+    let bar = Sourcemap.({
+      source = "bar.js";
+      original_loc = { line = 1; col = 1 };
+      name = None;
+    }) in
+    let foo = Sourcemap.({
+      source = "foo.js";
+      original_loc = { line = 1; col = 1 };
+      name = None;
+    }) in
     let map =
       Sourcemap.create ()
-      |> Sourcemap.add_mapping ~source:"bar.js" ~original ~generated
-      |> Sourcemap.add_mapping ~source:"foo.js" ~original ~generated
+      |> Sourcemap.add_mapping ~original:bar ~generated:{ Sourcemap.line = 3; col = 1 }
+      |> Sourcemap.add_mapping ~original:foo ~generated:{ Sourcemap.line = 3; col = 2 }
     in
     let actual = json_of_sourcemap map in
     let expected = JSON_Object [
       "version", JSON_Number "3";
       "sources", JSON_Array [JSON_String "bar.js"; JSON_String "foo.js"];
       "names", JSON_Array [];
-      "mappings", JSON_String ";;CAAC,ACAA";
+      "mappings", JSON_String ";;CAAC,CCAA";
     ] in
     assert_equal ~ctxt expected actual
   end;
@@ -124,14 +132,22 @@ let tests = "json" >::: [
       "version", JSON_Number "3";
       "sources", JSON_Array [JSON_String "bar.js"; JSON_String "foo.js"];
       "names", JSON_Array [JSON_String "y"];
-      "mappings", JSON_String ";;CAAC,ACAAA";
+      "mappings", JSON_String ";;CAAC,CCAAA";
     ] in
     let expected =
-      let original = { Sourcemap.line = 1; col = 1 } in
-      let generated = { Sourcemap.line = 3; col = 1 } in
+      let bar = Sourcemap.({
+        source = "bar.js";
+        original_loc = { line = 1; col = 1 };
+        name = None;
+      }) in
+      let foo = Sourcemap.({
+        source = "foo.js";
+        original_loc = { line = 1; col = 1 };
+        name = Some "y";
+      }) in
       Sourcemap.create ()
-      |> Sourcemap.add_mapping ~source:"bar.js" ~original ~generated
-      |> Sourcemap.add_mapping ~source:"foo.js" ~original ~generated ~name:"y"
+      |> Sourcemap.add_mapping ~original:bar ~generated:{ Sourcemap.line = 3; col = 1 }
+      |> Sourcemap.add_mapping ~original:foo ~generated:{ Sourcemap.line = 3; col = 2 }
     in
     let actual = sourcemap_of_json json in
 

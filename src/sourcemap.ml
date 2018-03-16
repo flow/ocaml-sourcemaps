@@ -49,18 +49,14 @@ let create ?file ?source_root () = {
   sources_contents = SMap.empty;
 }
 
-let add_mapping ?name ~source ~original ~generated map =
-  let sources = SSet.add source map.sources in
-  let names = match name with
+let add_mapping ~original ~generated map =
+  let sources = SSet.add original.source map.sources in
+  let names = match original.name with
   | Some name -> SSet.add name map.names
   | None -> map.names
   in
   let mapping = {
-    original = Some {
-      name;
-      source;
-      original_loc = original;
-    };
+    original = Some original;
     generated_loc = generated;
   } in
   let mappings = mapping::map.mappings in

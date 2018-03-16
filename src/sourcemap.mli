@@ -6,19 +6,19 @@
  *)
 
 type t
-type line_col = {
+and original = {
+  source: string;
+  original_loc: line_col;
+  name: string option;
+}
+and line_col = {
   line: int;
   col: int;
 }
 
 val create: ?file:string -> ?source_root:string -> unit -> t
 
-val add_mapping:
-  ?name:string ->
-  source:string ->
-  original:line_col ->
-  generated:line_col ->
-  t -> t
+val add_mapping: original:original -> generated:line_col -> t -> t
 
 val add_source_content: source:string -> content:string -> t -> t
 
