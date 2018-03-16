@@ -29,18 +29,33 @@ val source_root: t -> string option
 val sources: t -> string list
 val sources_contents: t -> string option list
 
-module type Json_serializer_intf = sig
+module type Json_writer_intf = sig
   type t
-  val string: string -> t
-  val obj: (string * t) list -> t
-  val array: t list -> t
-  val number: string -> t
+  val of_string: string -> t
+  val of_obj: (string * t) list -> t
+  val of_array: t list -> t
+  val of_number: string -> t
   val null: t
 end
 
-module type Json = sig
+module type Json_reader_intf = sig
+  type t
+  val to_string: t -> string
+  val to_obj: t -> (string * t) list
+  val to_array: t -> t list
+  val to_number: t -> string
+  val is_null: t -> bool
+end
+
+module type Json_writer = sig
   type json
   val json_of_sourcemap: t -> json
 end
 
-module Make_json (Serializer : Json_serializer_intf) : (Json with type json = Serializer.t)
+module type Json_reader = sig
+  type json
+  val sourcemap_of_json: json -> t
+end
+
+module Make_json_writer (Writer : Json_writer_intf) : (Json_writer with type json = Writer.t)
+module Make_json_reader (Reader : Json_reader_intf) : (Json_reader with type json = Reader.t)
