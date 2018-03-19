@@ -8,6 +8,7 @@
 open OUnit2
 
 let tests = "sourcemaps" >::: [
+  Compose_test.tests;
   Json_test.tests;
   Original_loc_test.tests;
 ]
