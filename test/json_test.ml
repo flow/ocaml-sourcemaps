@@ -7,6 +7,7 @@
 
 open OUnit2
 open Sourcemaps
+open Test_utils
 
 type json =
   | JSON_String of string
@@ -151,18 +152,6 @@ let tests = "json" >::: [
     in
     let actual = sourcemap_of_json json in
 
-    assert_equal ~ctxt ~msg:"Versions not equal"
-      (Sourcemap.version expected) (Sourcemap.version actual);
-    assert_equal ~ctxt ~msg:"Sources not equal" ~printer:(String.concat "; ")
-      (Sourcemap.sources expected) (Sourcemap.sources actual);
-    assert_equal ~ctxt ~msg:"Source root not equal"
-      (Sourcemap.source_root expected) (Sourcemap.source_root actual);
-    assert_equal ~ctxt ~msg:"Names not equal"
-      (Sourcemap.names expected) (Sourcemap.names actual);
-    assert_equal ~ctxt ~msg:"Mappings not equal" ~printer:(fun x -> x)
-      (Sourcemap.string_of_mappings expected) (Sourcemap.string_of_mappings actual);
-    assert_equal ~ctxt ~msg:"Source content not equal"
-      (Sourcemap.sources_contents expected) (Sourcemap.sources_contents actual);
-    assert_equal ~ctxt expected actual
+    assert_equal_sourcemaps ~ctxt expected actual
   end
 ]

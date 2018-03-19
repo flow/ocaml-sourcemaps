@@ -11,7 +11,6 @@ module SSet = Set.Make(String)
 type t = {
   file: string option;
   source_root: string option;
-  sources: SSet.t;
   names: SSet.t;
   mappings: mapping list; (* assumed to be sorted. switch to a Map? *)
   sources_contents: string SMap.t;
@@ -43,11 +42,19 @@ type mapping_state = {
 let create ?file ?source_root () = {
   file;
   source_root;
-  sources = SSet.empty;
   names = SSet.empty;
   mappings = [];
   sources_contents = SMap.empty;
 }
+
+let sources_set map =
+  List.fold_left (fun acc mapping ->
+    match mapping with
+    | { original = Some { source; _ }; _ } -> SSet.add source acc
+    | { original = None; _ } -> acc
+  ) SSet.empty map.mappings
+
+let sources map = SSet.elements (sources_set map)
 
 (* Searches for `needle` in `arr`. If `needle` doesn't exist, returns the closest lower bound. *)
 let rec binary_search ~cmp needle arr l u =
@@ -74,8 +81,26 @@ let find_original map generated =
   | Some { original; _ } -> original
   | None -> None
 
+(* for each mapping in `map`, update to the `original` info corresponding to
+   that loc in map2 *)
+let compose map map2 =
+  let mappings, names = List.fold_left (fun (mappings, names) mapping ->
+    let mapping, names = match mapping.original with
+    | Some { original_loc; _ } ->
+      begin match find_original map2 original_loc with
+      | Some ({ source; name; _ } as original) ->
+        let mapping = { mapping with original = Some original } in
+        let names = match name with Some name -> SSet.add name names | None -> names in
+        mapping, names
+      | None -> mapping, names
+      end
+    | None -> mapping, names
+    in
+    mapping::mappings, names
+  ) ([], map.names) map.mappings in
+  { map with mappings = List.rev mappings; names }
+
 let add_mapping ~original ~generated map =
-  let sources = SSet.add original.source map.sources in
   let names = match original.name with
   | Some name -> SSet.add name map.names
   | None -> map.names
@@ -85,7 +110,7 @@ let add_mapping ~original ~generated map =
     generated_loc = generated;
   } in
   let mappings = mapping::map.mappings in
-  { map with sources; mappings; names }
+  { map with mappings; names }
 
 let add_source_content ~source ~content map =
   let sources_contents = SMap.add source content map.sources_contents in
@@ -113,7 +138,7 @@ let string_of_mappings map =
     prev_source = 0;
     prev_mapping = None;
   } in
-  let source_indexes = index_map map.sources in
+  let source_indexes = index_map (sources_set map) in
   let name_indexes = index_map map.names in
   let buf = Buffer.create 127 in (* arbitrary length *)
   let (buf, _) = List.fold_left (fun (buf, state) mapping ->
@@ -256,7 +281,7 @@ let mappings_of_string ~sources ~names str =
   mappings_of_stream ~sources ~names (Stream.of_string str)
 
 let sources_contents map =
-  SSet.elements map.sources
+  sources map
   |> List.map (fun source ->
     if SMap.mem source map.sources_contents
       then Some (SMap.find source map.sources_contents)
@@ -266,7 +291,6 @@ let sources_contents map =
 let version _map = "3"
 let names map = SSet.elements map.names
 let source_root map = map.source_root
-let sources map = SSet.elements map.sources
 
 module type Json_writer_intf = sig
   type t
@@ -366,7 +390,6 @@ module Make_json_reader (Json : Json_reader_intf) : (Json_reader with type json 
     {
       file;
       source_root;
-      sources = SSet.of_list sources;
       names = SSet.of_list names;
       mappings;
       sources_contents = match sources_contents with Some x -> x | None -> SMap.empty;
