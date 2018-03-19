@@ -51,12 +51,16 @@ let create ?file ?source_root () = {
 
 (* Searches for `needle` in `arr`. If `needle` doesn't exist, returns the closest lower bound. *)
 let rec binary_search ~cmp needle arr l u =
-  if u < l then arr.(l) else
-  let i = (l + u) / 2 in
-  let k = cmp needle arr.(i) in
-  if k = 0 then arr.(i)
-  else if k < 0 then binary_search ~cmp needle arr l (i - 1)
-  else binary_search ~cmp needle arr (i + 1) u
+  let len = Array.length arr in
+  if len = 0 then None
+  else if l >= len then Some arr.(len - 1)
+  else if u < l then Some arr.(l)
+  else
+    let i = (l + u) / 2 in
+    let k = cmp needle arr.(i) in
+    if k = 0 then Some arr.(i)
+    else if k < 0 then binary_search ~cmp needle arr l (i - 1)
+    else binary_search ~cmp needle arr (i + 1) u
 
 let find_original map generated =
   let mappings = Array.of_list map.mappings in
@@ -66,8 +70,9 @@ let find_original map generated =
     if k = 0 then b_col - a_col
     else k
   in
-  let mapping = binary_search ~cmp generated mappings 0 (len - 1) in
-  mapping.original
+  match binary_search ~cmp generated mappings 0 (len - 1) with
+  | Some { original; _ } -> original
+  | None -> None
 
 let add_mapping ~original ~generated map =
   let sources = SSet.add original.source map.sources in

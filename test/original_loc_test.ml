@@ -48,9 +48,25 @@ let tests = "original_loc" >::: [
     let expected = Some bar in
     let actual = Sourcemap.find_original map { Sourcemap.line = 3; col = 3 } in
     assert_equal ~ctxt ~printer:(print_option print_original) expected actual;
+  end;
 
+  "before_start" >:: begin fun ctxt ->
+    let expected = Some bar in
+    let actual = Sourcemap.find_original map { Sourcemap.line = 1; col = 2 } in
+    assert_equal ~ctxt ~printer:(print_option print_original) expected actual;
+  end;
+
+  "past_end" >:: begin fun ctxt ->
     let expected = Some foo in
     let actual = Sourcemap.find_original map { Sourcemap.line = 3; col = 8 } in
+    assert_equal ~ctxt ~printer:(print_option print_original) expected actual;
+  end;
+
+  "empty" >:: begin fun ctxt ->
+    let expected = None in
+    let map = Sourcemap.create () in
+    let actual = Sourcemap.find_original map { Sourcemap.line = 3; col = 3 } in
+
     assert_equal ~ctxt ~printer:(print_option print_original) expected actual;
   end;
 ]
