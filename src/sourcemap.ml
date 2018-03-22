@@ -88,7 +88,7 @@ let compose map map2 =
     let mapping, names = match mapping.original with
     | Some { original_loc; _ } ->
       begin match find_original map2 original_loc with
-      | Some ({ source; name; _ } as original) ->
+      | Some ({ name; _ } as original) ->
         let mapping = { mapping with original = Some original } in
         let names = match name with Some name -> SSet.add name names | None -> names in
         mapping, names
@@ -154,8 +154,8 @@ let string_of_mappings map =
           let skip = match state.prev_mapping with
           | Some prev_mapping ->
             begin match prev_mapping.original, mapping.original with
-            | Some { source = prev_source; original_loc = prev_loc },
-              Some { source; original_loc = loc }
+            | Some { source = prev_source; original_loc = prev_loc; name = _ },
+              Some { source; original_loc = loc; name = _ }
               when source = prev_source && loc = prev_loc ->
                 true
             | _ ->
@@ -241,7 +241,7 @@ let mappings_of_stream =
       (* separator between segments *)
       Stream.junk stream;
       helper acc state stream sources names
-    | Some chr ->
+    | Some _ ->
       (* start of a segment, which consists of 1, 4 or 5 VLQs *)
 
       let offset = Vlq.Base64.decode stream in
