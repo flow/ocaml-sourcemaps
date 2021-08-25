@@ -1,4 +1,5 @@
 opam-version: "2.0"
+synopsis: "A library for encoding JavaScript source maps"
 maintainer: "Marshall Roch <mroch@fb.com>"
 authors: "Marshall Roch <mroch@fb.com>"
 license: "MIT"
@@ -7,13 +8,13 @@ doc: "https://github.com/flowtype/ocaml-sourcemaps"
 bug-reports: "https://github.com/flowtype/ocaml-sourcemaps/issues"
 depends: [
   "ocaml"
-  "jbuilder" {build & >= "1.0+beta7"}
-  "ounit" {with-test & >= "2.0.0"}
+  "dune" {build & >= "1.0"}
+  "ounit2" {with-test}
   "vlq"
 ]
 build: [
-  ["jbuilder" "build" "-p" name "-j" jobs]
-  ["jbuilder" "runtest" "-p" name "-j" jobs] {with-test}
+  ["dune" "build" "-p" name "-j" jobs]
+  ["dune" "runtest" "-p" name "-j" jobs] {with-test}
 ]
 dev-repo: "git+https://github.com/flowtype/ocaml-sourcemaps.git"
 description: """
